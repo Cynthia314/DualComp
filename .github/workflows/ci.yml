@@ -1,0 +1,334 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: Release hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate exact public release tree
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+
+          expected = {
+              ".github/workflows/ci.yml",
+              ".gitattributes",
+              ".gitignore",
+              "CITATION.cff",
+              "CONTRIBUTING.md",
+              "DATA.md",
+              "LICENSE",
+              "MANIFEST.in",
+              "METHOD_TO_CODE.md",
+              "MODEL_CARD.md",
+              "NOTICE",
+              "PROVENANCE.md",
+              "README.md",
+              "RELEASE_CHECKLIST.md",
+              "REPRODUCIBILITY.md",
+              "THIRD_PARTY.md",
+              "checkpoints/README.md",
+              "configs/paper_transcribed.json",
+              "integrations/README.md",
+              "integrations/geollava/README.md",
+              "integrations/lmms_eval/README.md",
+              "pyproject.toml",
+              "results/reported/paper_results.json",
+              "src/dualcomp/__init__.py",
+              "src/dualcomp/attention.py",
+              "src/dualcomp/compressor.py",
+              "src/dualcomp/fusion.py",
+              "src/dualcomp/igsr.py",
+              "src/dualcomp/router.py",
+              "src/dualcomp/scsa.py",
+              "tests/conftest.py",
+              "tests/test_core_contracts.py",
+              "tests/test_igsr.py",
+              "tests/test_paper_results.py",
+              "tests/test_router.py",
+              "tests/test_scsa.py",
+          }
+          candidates = subprocess.check_output(
+              [
+                  "git",
+                  "ls-files",
+                  "--cached",
+                  "--others",
+                  "--exclude-standard",
+                  "-z",
+              ]
+          ).decode().split("\0")
+          actual = {path for path in candidates if path and Path(path).is_file()}
+          missing = sorted(expected - actual)
+          unexpected = sorted(actual - expected)
+          if missing or unexpected:
+              details = []
+              if missing:
+                  details.append("missing:\n- " + "\n- ".join(missing))
+              if unexpected:
+                  details.append("unexpected:\n- " + "\n- ".join(unexpected))
+              raise SystemExit("Public release tree mismatch\n" + "\n".join(details))
+          print(f"Validated exact {len(actual)}-file public release tree.")
+          PY
+
+      - name: Reject private artifacts, large files, secrets, and local paths
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import re
+          import subprocess
+          from pathlib import PurePosixPath
+
+
+          forbidden_suffixes = {
+              ".7z",
+              ".bin",
+              ".ckpt",
+              ".credentials",
+              ".gz",
+              ".h5",
+              ".hdf5",
+              ".joblib",
+              ".jsonl",
+              ".npy",
+              ".npz",
+              ".onnx",
+              ".p12",
+              ".parquet",
+              ".pem",
+              ".pfx",
+              ".pickle",
+              ".pkl",
+              ".pth",
+              ".pt",
+              ".pyc",
+              ".rar",
+              ".safetensors",
+              ".tar",
+              ".tgz",
+              ".zip",
+          }
+          forbidden_parts = {
+              ".pytest_cache",
+              ".secrets",
+              "__pycache__",
+              "private_artifacts",
+              "wandb",
+          }
+          max_bytes = 5 * 1024 * 1024
+          text_rules = {
+              "private key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+              "credential assignment": re.compile(
+                  r"(?i)(?:api[_-]?key|access[_-]?token|password|secret)\s*[:=]\s*"
+                  r"['\"][^'\"\r\n]{8,}['\"]"
+              ),
+              "GitHub token": re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}\b"),
+              "AWS access key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+              "Linux user-home path": re.compile(r"(?<![A-Za-z0-9_])/(?:root|home)/[^\s'\"]+/"),
+              "Windows user-home path": re.compile(r"(?i)[A-Z]:\\Users\\[^\\\r\n]+\\"),
+          }
+
+          history = subprocess.check_output(
+              ["git", "rev-list", "--objects", "--all"], text=True
+          ).splitlines()
+          failures: list[str] = []
+          scanned_blobs = 0
+          scanned_text_oids: set[str] = set()
+          for entry in history:
+              oid, separator, raw_path = entry.partition(" ")
+              if not separator or not raw_path:
+                  continue
+              if subprocess.check_output(["git", "cat-file", "-t", oid], text=True).strip() != "blob":
+                  continue
+
+              scanned_blobs += 1
+              path = PurePosixPath(raw_path)
+              suffix = path.suffix.lower()
+              size = int(
+                  subprocess.check_output(["git", "cat-file", "-s", oid], text=True)
+              )
+              if suffix in forbidden_suffixes:
+                  failures.append(f"forbidden artifact in history: {path}")
+              if forbidden_parts.intersection(path.parts):
+                  failures.append(f"forbidden cache/private path in history: {path}")
+              if size > max_bytes:
+                  failures.append(f"blob exceeds 5 MiB: {path} ({size} bytes)")
+              if (
+                  oid in scanned_text_oids
+                  or size > max_bytes
+                  or suffix in {".png", ".jpg", ".jpeg", ".gif"}
+              ):
+                  continue
+
+              scanned_text_oids.add(oid)
+              payload = subprocess.check_output(["git", "cat-file", "blob", oid])
+              text = payload.decode("utf-8", errors="ignore")
+              for label, pattern in text_rules.items():
+                  if pattern.search(text):
+                      failures.append(f"{label} in history: {path}")
+
+          if failures:
+              unique = list(dict.fromkeys(failures))
+              raise SystemExit("Release hygiene failed:\n- " + "\n- ".join(unique))
+          print(f"Checked {scanned_blobs} path-addressed blobs across full Git history.")
+          PY
+
+  test:
+    name: Python ${{ matrix.python-version }} CPU
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install CPU dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.1.2"
+          python -m pip install -e ".[test]" "build>=1,<2" "ruff>=0.6,<1" "twine>=5,<7"
+
+      - name: Compile source
+        run: python -m compileall -q src tests
+
+      - name: Check critical Python errors
+        run: ruff check src tests
+
+      - name: Run unit tests
+        run: pytest -q
+
+      - name: Build and inspect package
+        if: matrix.python-version == '3.11'
+        run: |
+          python -m build
+          python -m twine check dist/*
+          python - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import tarfile
+          import zipfile
+
+
+          dist = Path("dist")
+          wheels = list(dist.glob("*.whl"))
+          sdists = list(dist.glob("*.tar.gz"))
+          if len(wheels) != 1 or len(sdists) != 1:
+              raise SystemExit(
+                  f"Expected one wheel and one sdist, got {wheels=} {sdists=}"
+              )
+
+          with zipfile.ZipFile(wheels[0]) as archive:
+              wheel_members = set(archive.namelist())
+          dist_info_roots = {
+              PurePosixPath(path).parts[0]
+              for path in wheel_members
+              if ".dist-info/" in path
+          }
+          if len(dist_info_roots) != 1:
+              raise SystemExit(f"Unexpected wheel dist-info roots: {dist_info_roots}")
+          dist_info = dist_info_roots.pop()
+          expected_wheel = {
+              "dualcomp/__init__.py",
+              "dualcomp/attention.py",
+              "dualcomp/compressor.py",
+              "dualcomp/fusion.py",
+              "dualcomp/igsr.py",
+              "dualcomp/router.py",
+              "dualcomp/scsa.py",
+              f"{dist_info}/METADATA",
+              f"{dist_info}/RECORD",
+              f"{dist_info}/WHEEL",
+              f"{dist_info}/licenses/LICENSE",
+              f"{dist_info}/licenses/NOTICE",
+              f"{dist_info}/top_level.txt",
+          }
+          if wheel_members != expected_wheel:
+              raise SystemExit(
+                  "Wheel content mismatch\nmissing: "
+                  f"{sorted(expected_wheel - wheel_members)}\nunexpected: "
+                  f"{sorted(wheel_members - expected_wheel)}"
+              )
+
+          with tarfile.open(sdists[0]) as archive:
+              files = [member.name for member in archive.getmembers() if member.isfile()]
+          sdist_members = {
+              "/".join(PurePosixPath(path).parts[1:]) for path in files
+          }
+          expected_sdist = {
+              "CITATION.cff",
+              "CONTRIBUTING.md",
+              "DATA.md",
+              "LICENSE",
+              "MANIFEST.in",
+              "METHOD_TO_CODE.md",
+              "MODEL_CARD.md",
+              "NOTICE",
+              "PKG-INFO",
+              "PROVENANCE.md",
+              "README.md",
+              "RELEASE_CHECKLIST.md",
+              "REPRODUCIBILITY.md",
+              "THIRD_PARTY.md",
+              "checkpoints/README.md",
+              "configs/paper_transcribed.json",
+              "integrations/README.md",
+              "integrations/geollava/README.md",
+              "integrations/lmms_eval/README.md",
+              "pyproject.toml",
+              "results/reported/paper_results.json",
+              "setup.cfg",
+              "src/dualcomp/__init__.py",
+              "src/dualcomp/attention.py",
+              "src/dualcomp/compressor.py",
+              "src/dualcomp/fusion.py",
+              "src/dualcomp/igsr.py",
+              "src/dualcomp/router.py",
+              "src/dualcomp/scsa.py",
+              "src/dualcomp_rs.egg-info/PKG-INFO",
+              "src/dualcomp_rs.egg-info/SOURCES.txt",
+              "src/dualcomp_rs.egg-info/dependency_links.txt",
+              "src/dualcomp_rs.egg-info/requires.txt",
+              "src/dualcomp_rs.egg-info/top_level.txt",
+              "tests/conftest.py",
+              "tests/test_core_contracts.py",
+              "tests/test_igsr.py",
+              "tests/test_paper_results.py",
+              "tests/test_router.py",
+              "tests/test_scsa.py",
+          }
+          if sdist_members != expected_sdist:
+              raise SystemExit(
+                  "Sdist content mismatch\nmissing: "
+                  f"{sorted(expected_sdist - sdist_members)}\nunexpected: "
+                  f"{sorted(sdist_members - expected_sdist)}"
+              )
+          print(
+              f"Validated {len(wheel_members)} wheel files and "
+              f"{len(sdist_members)} sdist files."
+          )
+          PY

@@ -1,0 +1,30 @@
+DualComp
+Copyright 2026 the DualComp authors.
+
+The Apache License, Version 2.0 in LICENSE applies only to original DualComp
+core code unless an individual file states otherwise. It does not grant rights
+to pretrained or derived weights, datasets, annotations, images, generated
+labels, third-party source code, or third-party integration patches.
+
+The manuscript authors, in order, are Yueying Li, Fengxiang Wang, Yan Li,
+Mingshuo Chen, Mengying Zhao, and Long Lan.
+
+The method acknowledges VisionTrim as related TGVC-style text-guidance work.
+VisionTrim commit 308e73a9b8437882c5c1056a32dbc60fd41efd53 was reviewed under
+Apache-2.0. No VisionTrim source is vendored or modified in this clean-room
+public core.
+
+lmms-eval 0.3.0 was reviewed as a candidate evaluation harness, but no
+lmms-eval source or derivative patch is distributed in this release, and no
+local task adapter or evaluator is included.
+
+GeoLLaVA-8K is an external host project. No explicit repository or model license
+was found in the reviewed sources. No GeoLLaVA source, derivative patch, or
+weight is distributed by this public release.
+
+No XLRS-Bench data, underlying imagery, generated benchmark labels, GeoLLaVA
+weights, Qwen weights, or DualComp router weights are included. Public numerical
+results are transcribed from the manuscript and are not independent rerun
+measurements. See THIRD_PARTY.md, DATA.md, MODEL_CARD.md, and
+REPRODUCIBILITY.md. The clean-room source boundary and reviewed module hashes
+are recorded in PROVENANCE.md.

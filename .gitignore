@@ -1,0 +1,113 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Environments and local tooling
+.venv/
+.venv*/
+venv/
+env/
+.conda/
+.idea/
+.vscode/
+*.code-workspace
+
+# Packaging
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+*.whl
+pip-wheel-metadata/
+
+# Secrets and machine-local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.credentials
+.secrets/
+local-config.*
+private_artifacts/
+
+# Model weights and checkpoints
+checkpoints/**
+!checkpoints/README.md
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.tflite
+*.bin
+
+# Data, annotations, images, and embeddings
+data/
+datasets/
+external-data/
+annotations/
+images/
+embeddings/
+models/
+*.npy
+*.npz
+*.arrow
+*.parquet
+*.h5
+*.hdf5
+
+# Raw experiment artifacts
+results/**
+!results/reported/
+!results/reported/paper_results.json
+outputs/
+logs/
+wandb/
+mlruns/
+tensorboard/
+*.log
+*.jsonl
+
+# Generated task configurations can contain machine-local dataset paths
+tasks/**/*.generated.yaml
+
+# Model and package caches
+.cache/
+huggingface/
+hub/
+downloads/
+
+# Native/CUDA build products
+*.so
+*.dll
+*.dylib
+*.o
+*.obj
+*.a
+*.lib
+*.cuo
+
+# Archives and temporary files
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.tmp
+*.temp
+*.bak
+*~
+.DS_Store
+Thumbs.db

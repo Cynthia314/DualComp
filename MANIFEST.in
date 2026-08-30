@@ -1,0 +1,20 @@
+include CITATION.cff
+include CONTRIBUTING.md
+include DATA.md
+include LICENSE
+include METHOD_TO_CODE.md
+include MODEL_CARD.md
+include NOTICE
+include PROVENANCE.md
+include README.md
+include RELEASE_CHECKLIST.md
+include REPRODUCIBILITY.md
+include THIRD_PARTY.md
+
+include checkpoints/README.md
+include configs/paper_transcribed.json
+include integrations/README.md
+include integrations/geollava/README.md
+include integrations/lmms_eval/README.md
+include results/reported/paper_results.json
+recursive-include tests *.py

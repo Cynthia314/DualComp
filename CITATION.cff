@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, cite the manuscript below. Add a DOI, proceedings
+  entry, and release date only after they are publicly verified.
+title: DualComp
+type: software
+version: 0.1.0
+license: Apache-2.0
+repository-code: https://github.com/Cynthia314/DualComp
+authors:
+  - family-names: Li
+    given-names: Yueying
+  - family-names: Wang
+    given-names: Fengxiang
+  - family-names: Li
+    given-names: Yan
+  - family-names: Chen
+    given-names: Mingshuo
+  - family-names: Zhao
+    given-names: Mengying
+  - family-names: Lan
+    given-names: Long
+preferred-citation:
+  type: article
+  title: >-
+    Semantic-Geometric Dual Compression: Training-Free Visual Token Reduction
+    for Ultra-High-Resolution Remote Sensing Understanding
+  authors:
+    - family-names: Li
+      given-names: Yueying
+    - family-names: Wang
+      given-names: Fengxiang
+    - family-names: Li
+      given-names: Yan
+    - family-names: Chen
+      given-names: Mingshuo
+    - family-names: Zhao
+      given-names: Mengying
+    - family-names: Lan
+      given-names: Long
