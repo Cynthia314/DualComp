@@ -43,7 +43,6 @@ private_artifacts/
 
 # Model weights and checkpoints
 checkpoints/**
-!checkpoints/README.md
 *.pt
 *.pth
 *.ckpt
@@ -69,8 +68,6 @@ models/
 
 # Raw experiment artifacts
 results/**
-!results/reported/
-!results/reported/paper_results.json
 outputs/
 logs/
 wandb/

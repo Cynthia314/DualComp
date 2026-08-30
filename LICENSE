@@ -1,14 +1,12 @@
 DualComp licensing scope
 ========================
 
-Unless an individual file states otherwise, original DualComp core code in the
-`src/dualcomp` package is licensed under the Apache License, Version 2.0 below.
+Unless an individual file states otherwise, the contents of this repository
+are licensed under the Apache License, Version 2.0 below.
 
-This license does not apply to pretrained or derived weights, datasets,
-annotations, images, generated labels, third-party source code, or third-party
-integration patches. Those materials are governed by separate terms described
-in NOTICE, THIRD_PARTY.md, DATA.md, and MODEL_CARD.md. Nothing in this file
-grants rights that the DualComp authors do not own.
+External models, datasets, annotations, images, generated labels, and
+third-party code are not part of this distribution. Nothing in this file grants
+rights that the DualComp authors do not own.
 
                                  Apache License
                            Version 2.0, January 2004

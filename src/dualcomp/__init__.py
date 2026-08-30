@@ -1,8 +1,4 @@
-"""Paper-derived reference components for DualComp.
-
-This package publishes no trained weights, host integration, benchmark data,
-or independently reproduced paper results.
-"""
+"""Paper-derived reference components for DualComp."""
 
 from .attention import cls_to_patch_attention
 from .compressor import (

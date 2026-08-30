@@ -15,17 +15,16 @@ DualComp routes a visual-token budget between semantic and geometric streams:
 - **IGSR** retains geometry-sensitive anchors and completes structural paths.
 - **Fusion** concatenates the two streams using lambda-aware scaling.
 
-The repository provides paper-bounded reference components, tests, and result
-transcriptions. Parameters omitted by the manuscript remain explicit, and no
-end-to-end host-model adapter is claimed.
+The repository provides a paper-bounded reference implementation. Parameters
+omitted by the manuscript remain explicit, and no end-to-end host-model adapter
+is claimed.
 
 ## Install
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[test]"
-pytest -q
+python -m pip install -e .
 ```
 
 Python 3.10 and 3.11 are supported.
@@ -52,15 +51,7 @@ assert output.shape == (1, 3, 4)
 | Inference speed | 3.87 s/image |
 | Qwen2.5-VL-7B transfer | 47.9% at 10.24x |
 
-See [`results/reported/paper_results.json`](results/reported/paper_results.json)
-for the complete transcription and recorded manuscript inconsistencies.
-
-## Documentation
-
-- [Method-to-code map](METHOD_TO_CODE.md)
-- [Reproducibility status](REPRODUCIBILITY.md)
-- [Source provenance](PROVENANCE.md)
-- [Third-party boundaries](THIRD_PARTY.md)
+These values are copied from the manuscript and are not independent reruns.
 
 ## Citation and license
 

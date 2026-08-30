@@ -9,7 +9,7 @@ description = "Paper-derived reference components for semantic-geometric visual-
 readme = "README.md"
 requires-python = ">=3.10,<3.12"
 license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE"]
+license-files = ["LICENSE"]
 authors = [
   {name = "Yueying Li"},
   {name = "Fengxiang Wang"},
@@ -34,38 +34,7 @@ dependencies = [
 Repository = "https://github.com/Cynthia314/DualComp"
 Issues = "https://github.com/Cynthia314/DualComp/issues"
 
-[project.optional-dependencies]
-test = [
-  "pytest>=7.4,<9",
-  "pytest-cov>=4.1,<7",
-]
-dev = [
-  "build>=1,<2",
-  "pytest>=7.4,<9",
-  "ruff>=0.6,<1",
-  "twine>=5,<7",
-]
-
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["dualcomp", "dualcomp.*"]
 namespaces = false
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-ra"
-
-[tool.ruff]
-target-version = "py310"
-line-length = 100
-
-[tool.ruff.lint]
-select = ["E9", "F63", "F7", "F82"]
-
-[tool.coverage.run]
-source = ["dualcomp"]
-branch = true
-
-[tool.coverage.report]
-show_missing = true
-skip_covered = true
