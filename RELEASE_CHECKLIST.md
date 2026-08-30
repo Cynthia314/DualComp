@@ -89,7 +89,7 @@ It is **not** a reproduced-results or model-weight release.
 - [x] IGSR anchor, text-modulation, topology, order, and budget tests pass.
 - [x] Weighted-fusion, single-sample budget-policy, and public-API contract tests pass.
 - [x] Paper transcription schema and consistency-audit tests pass.
-- [ ] A clean CPU CI matrix passes on Python 3.10 and 3.11.
+- [x] A clean CPU CI matrix passes on Python 3.10 and 3.11.
 - [x] `python -m build` and `twine check dist/*` succeed from a clean clone.
 - [x] Wheel contents contain only intended core package files.
 - [x] CI large-file, secret-pattern, and absolute-path checks pass.
